@@ -18,43 +18,47 @@ public class SwiftReceiveSharingIntentPlugin: NSObject, FlutterPlugin, FlutterSt
   private var eventSinkMedia: FlutterEventSink? = nil;
   private var eventSinkText: FlutterEventSink? = nil;
 
+// Singleton is required for calling functions directly from AppDelegate
+    // - it is required if the developer is using also another library, which requires to call "application(_:open:options:)"
+    // -> see Example app
+    public static let instance = SwiftReceiveSharingIntentPlugin()
 
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let instance = SwiftReceiveSharingIntentPlugin()
-
-    let channel = FlutterMethodChannel(name: kMessagesChannel, binaryMessenger: registrar.messenger())
-    registrar.addMethodCallDelegate(instance, channel: channel)
-
-    let chargingChannelMedia = FlutterEventChannel(name: kEventsChannelMedia, binaryMessenger: registrar.messenger())
-    chargingChannelMedia.setStreamHandler(instance)
-
-    let chargingChannelLink = FlutterEventChannel(name: kEventsChannelLink, binaryMessenger: registrar.messenger())
-    chargingChannelLink.setStreamHandler(instance)
-
-    registrar.addApplicationDelegate(instance)
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-      
-    switch call.method {
-    case "getInitialMedia":
-      result(toJson(data: self.initialMedia));
-    case "getInitialText":
-      result(self.initialText);
-    case "reset":
-      self.initialMedia = nil
-      self.latestMedia = nil
-      self.initialText = nil
-      self.latestText = nil
-      result(nil);
-    default:
-      result(FlutterMethodNotImplemented);
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: kMessagesChannel, binaryMessenger: registrar.messenger())
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        
+        let chargingChannelMedia = FlutterEventChannel(name: kEventsChannelMedia, binaryMessenger: registrar.messenger())
+        chargingChannelMedia.setStreamHandler(instance)
+        
+        let chargingChannelLink = FlutterEventChannel(name: kEventsChannelLink, binaryMessenger: registrar.messenger())
+        chargingChannelLink.setStreamHandler(instance)
+        
+        registrar.addApplicationDelegate(instance)
     }
-  }
+    
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        
+        switch call.method {
+        case "getInitialMedia":
+            result(toJson(data: self.initialMedia));
+        case "getInitialText":
+            result(self.initialText);
+        case "reset":
+            self.initialMedia = nil
+            self.latestMedia = nil
+            self.initialText = nil
+            self.latestText = nil
+            result(nil);
+        default:
+            result(FlutterMethodNotImplemented);
+        }
+    }
 
-  public func hasMatchingSchemePrefix(url: URL?) -> Bool {
-    if let url = url {
-      return url.absoluteString.hasPrefix(self.customSchemePrefix)
+  // By Adding bundle id to prefix, we'll ensure that the correct application will be openned
+    // - found the issue while developing multiple applications using this library, after "application(_:open:options:)" is called, the first app using this librabry (first app by bundle id alphabetically) is opened
+    public func hasMatchingSchemePrefix(url: URL?) -> Bool {
+        if let url = url, let appDomain = Bundle.main.bundleIdentifier {
+      return url.absoluteString.hasPrefix("\(self.customSchemePrefix)-\(appDomain)")
     }
     return false
   }
