@@ -7,6 +7,7 @@ import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.net.Uri
 import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -22,7 +23,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URLConnection
 
 private const val MESSAGES_CHANNEL = "receive_sharing_intent/messages"
 private const val EVENTS_CHANNEL_MEDIA = "receive_sharing_intent/events-media"
@@ -178,7 +178,7 @@ class ReceiveSharingIntentPlugin : FlutterPlugin, ActivityAware, MethodCallHandl
     }
 
     private fun getMediaType(path: String?): MediaType {
-        val mimeType = URLConnection.guessContentTypeFromName(path)
+        val mimeType = MimeTypeMap.getFileExtensionFromUrl(path)
         return when {
             mimeType?.startsWith("image") == true -> MediaType.IMAGE
             mimeType?.startsWith("video") == true -> MediaType.VIDEO
