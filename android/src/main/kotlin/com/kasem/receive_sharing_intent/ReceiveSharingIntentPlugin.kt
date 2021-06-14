@@ -178,7 +178,7 @@ class ReceiveSharingIntentPlugin : FlutterPlugin, ActivityAware, MethodCallHandl
     }
 
     private fun getMediaType(path: String?): MediaType {
-        val mimeType = URLConnection.guessContentTypeFromName(path)
+        val mimeType = MimeTypeMap.getFileExtensionFromUrl(path)
         return when {
             mimeType?.startsWith("image") == true -> MediaType.IMAGE
             mimeType?.startsWith("video") == true -> MediaType.VIDEO
